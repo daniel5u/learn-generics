@@ -1,0 +1,1 @@
+((learn_generics::s04_traits::Rect, learn_generics::s04_traits::Rect), (learn_generics::s04_traits::Rect, learn_generics::s04_traits::Rect))

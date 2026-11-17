@@ -1,0 +1,9 @@
+[package]
+name = "learn-generics"
+version = "0.1.0"
+edition = "2024"
+
+
+[lib]
+# 文档注释里的示意图不是可运行的代码，关掉 doctest
+doctest = false
