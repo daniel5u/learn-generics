@@ -52,6 +52,35 @@ use std::fmt::Display;
 //   注意这一组方法没有任何 bound：一个栈不需要了解它装的是什么。
 //   在 impl 块里，`Self` 就是 `Stack<T>` 的简写。
 
+pub struct Stack<T> {
+    items: Vec<T>,
+}
+
+impl<T> Stack<T> {
+    pub fn new() -> Self {
+        Self { items: Vec::new() }
+    }
+
+    pub fn push(&mut self, item: T) {
+        self.items.push(item);
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        self.items.pop()
+    }
+
+    pub fn peek(&self) -> Option<&T> {
+        self.items.last()
+    }
+
+    pub fn len(&self) -> usize {
+        self.items.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.items.is_empty()
+    }
+}
 // TODO 2: 条件方法 —— 再写两个 impl 块，各带一个 bound:
 //
 //     impl<T: Display> Stack<T>
@@ -67,12 +96,44 @@ use std::fmt::Display;
 //   试一试：做完之后，在测试里对一个 Stack<Vec<i32>> 调用 .render()，读一下报错。
 //           Vec<i32> 没有实现 Display，所以这个方法对它"不存在"——但 push / pop 照常可用。
 
+impl<T: Display> Stack<T> {
+    pub fn render(&self) -> String {
+        let ans: Vec<String> = self.items.iter().map(|x| x.to_string()).collect();
+
+        format!("[{}]", ans.join(", "))
+    }
+}
+impl<T: PartialOrd> Stack<T> {
+    pub fn max(&self) -> Option<&T> {
+        let mut ans = self.items.first()?;
+
+        for item in &self.items[1..] {
+            if item > ans {
+                ans = item
+            }
+        }
+
+        Some(ans)
+    }
+}
+
 // TODO 3: 只属于某一个具体类型的方法:
 //
 //     impl Stack<f64>
 //         pub fn sum(&self) -> f64              空栈返回 0.0
 //
 //   注意 impl 后面没有 <T>：这里没有"任意类型"，只有 f64。
+impl Stack<f64> {
+    pub fn sum(&self) -> f64 {
+        let mut ans: f64 = 0.0;
+
+        for item in &self.items {
+            ans += item;
+        }
+
+        ans
+    }
+}
 
 // TODO 4: 手动为 Stack<T> 实现 Default（default() 返回空栈），要求对"任意 T"都成立。
 //
@@ -86,6 +147,12 @@ use std::fmt::Display;
 //   （derive(Clone)、derive(Debug)、derive(PartialEq) 都有同样的行为，Step 08 还会再碰到它。）
 
 /// 两个字段可以是不同类型的"一对"
+impl<T> Default for Stack<T> {
+    fn default() -> Self {
+        Self { items: Vec::new() }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pair<A, B> {
     pub first: A,
@@ -109,6 +176,35 @@ pub struct Pair<A, B> {
 //
 //   `F: FnOnce(A) -> C` 读作："F 是某种可以被调用一次的东西，吃一个 A，吐一个 C"。
 //   闭包为什么必须用泛型来接收，Step 09 会细讲，这里先照着用。
+
+impl<A, B> Pair<A, B> {
+    pub fn new(first: A, second: B) -> Self {
+        Self {
+            first: first,
+            second: second,
+        }
+    }
+    pub fn swap(self) -> Pair<B, A> {
+        Pair {
+            first: self.second,
+            second: self.first
+        }
+    }
+    pub fn mixup<C, D>(self, other: Pair<C, D>) -> Pair<A, D> {
+        Pair {
+            first: self.first,
+            second: other.second
+        }
+    }
+    pub fn map_first<C, F>(self, f: F) -> Pair<C, B>
+    where F: FnOnce(A) -> C
+    {
+        Pair {
+            first: f(self.first),
+            second: self.second
+        }
+    }
+}
 
 // ---------------------------------------------------------------
 // 思考题
