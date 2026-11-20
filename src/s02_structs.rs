@@ -187,21 +187,22 @@ impl<A, B> Pair<A, B> {
     pub fn swap(self) -> Pair<B, A> {
         Pair {
             first: self.second,
-            second: self.first
+            second: self.first,
         }
     }
     pub fn mixup<C, D>(self, other: Pair<C, D>) -> Pair<A, D> {
         Pair {
             first: self.first,
-            second: other.second
+            second: other.second,
         }
     }
     pub fn map_first<C, F>(self, f: F) -> Pair<C, B>
-    where F: FnOnce(A) -> C
+    where
+        F: FnOnce(A) -> C,
     {
         Pair {
             first: f(self.first),
-            second: self.second
+            second: self.second,
         }
     }
 }

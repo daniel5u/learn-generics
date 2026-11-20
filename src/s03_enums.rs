@@ -42,7 +42,32 @@
 //   会用到的语法:
 //     match self { Maybe::Just(x) => ..., Maybe::Nothing => ... }
 //     matches!(self, Maybe::Just(_))                 模式匹配得到 bool 的简写
+#[derive(Debug, Clone, PartialEq)]
+pub enum Maybe<T> {
+    Just(T),
+    Nothing,
+}
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum Outcome<T, E> {
+    Good(T),
+    Bad(E),
+}
+
+impl<T> Maybe<T> {
+    pub fn is_just(&self) -> bool {
+        match self {
+            Maybe::Just(x) => true,
+            Maybe::Nothing => false,
+        }
+    }
+
+    pub fn unwrap_or(self, default: T) -> T {
+        match self {
+            Maybe::Just(x) => x,
+            Maybe::Nothing => default,
+        }
+    }
     // TODO 2: 在同一个 impl<T> Maybe<T> 块里继续实现两个"变换"方法（签名需要你自己写）:
     //
     //     map:       Maybe<T> + (T -> U)         =>  Maybe<U>
@@ -56,6 +81,25 @@
     //     pub fn map<U, F>(self, f: F) -> Maybe<U>
     //     where
     //         F: FnOnce(T) -> U,
+    pub fn map<U, F>(self, f: F) -> Maybe<U>
+    where
+        F: FnOnce(T) -> U
+    {
+        match self {
+            Maybe::Just(x) => Maybe::Just(f(x)),
+            Maybe::Nothing => Maybe::Nothing,
+        }
+    }
+
+    pub fn and_then<U, F>(self, f: F) -> Maybe<U>
+    where
+        F: FnOnce(T) -> Maybe<U>
+    {
+        match self {
+            Maybe::Just(x) => f(x),
+            Maybe::Nothing => Maybe::Nothing,
+        }
+    }
 
     // TODO 3a: 还是在这个 impl 块里:
     //
@@ -64,6 +108,13 @@
     //
     //   注意 E 是这个方法自己引入的类型参数：Maybe<T> 本身对"错误类型"一无所知，
     //   是调用方在这一刻决定错误用什么类型来表示。
+    pub fn ok_or<E>(self, err: E) -> Outcome<T, E> {
+        match self {
+            Maybe::Just(x) => Outcome::Good(x),
+            Maybe::Nothing => Outcome::Bad(err),
+        }
+    }
+}
 
 // TODO 3b: 给 Outcome<T, E> 写一个 impl 块（这次 impl 后面要声明两个类型参数），实现:
 //
@@ -73,6 +124,15 @@
 //
 //   观察：map 的签名里 E 原封不动地从输入"穿"到了输出；map_err 则是 T 原封不动。
 //         光看签名就能知道一个泛型函数"不可能"动哪些东西，这是泛型带来的额外保证。
+impl<T,E> Outcome<T,E> {
+    pub fn map<U, F>(self, f: F) -> Outcome<U,E>
+    where F: FnOnce(T) -> U{
+        match self {
+            Outcome::Good(x) => Outcome::Good(f(x)),
+            Outcome::Bad(err) => Outcome::Bad(err)
+        }
+    }
+}
 
 // TODO 4: 和标准库的 Option 互相转换。实现两个 From:
 //
